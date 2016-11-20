@@ -18,7 +18,7 @@ import java.io.IOException;
  * Created by Konstantin Kosmachevskiy on 18.11.16.
  */
 @WebServlet(urlPatterns = {"/entries"})
-public class Servlet extends HttpServlet {
+public class EntriesServlet extends HttpServlet {
 
     @Autowired
     private EntryDao entryDao;
