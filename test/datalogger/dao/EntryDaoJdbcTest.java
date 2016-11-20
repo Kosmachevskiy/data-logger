@@ -2,7 +2,6 @@ package datalogger.dao;
 
 import datalogger.AppConfig;
 import datalogger.model.Entry;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,7 +10,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -19,7 +17,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * Created by Konstantin Kosmachevskiy on 04.11.16.
@@ -28,7 +27,7 @@ import static org.junit.Assert.*;
 @ContextConfiguration(classes = AppConfig.class, loader = AnnotationConfigContextLoader.class)
 public class EntryDaoJdbcTest {
 
-    static final Entry[] TEST_DATA = {
+    private final Entry[] TEST_DATA = {
             new Entry("12.1", "units"),
             new Entry("14.2", "units"),
             new Entry("13.3", "units"),
@@ -43,10 +42,10 @@ public class EntryDaoJdbcTest {
         try {
             Connection connection = getConnection();
 
-            connection.createStatement().execute(EntrySql.DELETE_ALL);
+            connection.createStatement().execute(EntrySqlConstants.DELETE_ALL);
             for (Entry entry : TEST_DATA) {
                 connection.createStatement().execute(
-                        String.format(EntrySql.ADD, entry.getDate(), entry.getTime(), entry.getValue(), entry.getUnit()));
+                        String.format(EntrySqlConstants.ADD, entry.getDate(), entry.getTime(), entry.getValue(), entry.getUnit()));
             }
 
             connection.close();
@@ -56,22 +55,24 @@ public class EntryDaoJdbcTest {
         }
     }
 
-    @After
-    public void after() {
-    }
-
     private long countAll() {
         long count = -1;
         try {
             Connection connection = getConnection();
-            ResultSet resultSet = connection.createStatement().executeQuery(EntrySql.COUNT_ALL);
+            ResultSet resultSet = connection.createStatement().executeQuery(EntrySqlConstants.COUNT_ALL);
             resultSet.next();
             count = resultSet.getLong(1);
             connection.close();
-        } finally {
-            return count;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return count;
 
+    }
+
+    private Connection getConnection() throws ClassNotFoundException, SQLException {
+        Class.forName(AppConfig.DRIVER_NAME);
+        return DriverManager.getConnection(AppConfig.DATA_BASE);
     }
 
     @Test
@@ -83,14 +84,9 @@ public class EntryDaoJdbcTest {
         assertEquals(++before, after);
     }
 
-    Connection getConnection() throws ClassNotFoundException, SQLException {
-        Class.forName(AppConfig.DRIVER_NAME);
-        return DriverManager.getConnection(AppConfig.DATA_BASE);
-    }
-
     @Test
     public void youCanDeleteById() throws Exception {
-        ResultSet resultSet = getConnection().createStatement().executeQuery(EntrySql.GET_ALL);
+        ResultSet resultSet = getConnection().createStatement().executeQuery(EntrySqlConstants.GET_ALL);
         List<Entry> entries = new ArrayList<>();
         while (resultSet.next())
             entries.add(new Entry(resultSet.getLong(1), resultSet.getDate(2), resultSet.getTime(3),
@@ -100,7 +96,7 @@ public class EntryDaoJdbcTest {
         Entry entry = entries.get(0);
         entryDao.deleteById(entry.getId());
 
-        assertEquals(TEST_DATA.length-1, entryDao.countEntries());
+        assertEquals(TEST_DATA.length - 1, entryDao.countEntries());
         assertFalse(entryDao.getAll().contains(entry));
     }
 

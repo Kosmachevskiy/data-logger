@@ -1,5 +1,46 @@
 <html>
+<script language="JavaScript">
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/entries', true);
+    xhr.send();
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState != 4) return;
+        if (xhr.status != 200)
+            document.getElementById("status").innerText = "Something happened. Error code: " + xhr.status;
+        else {
+            document.getElementById("status").remove();
+            document.getElementById("entries").style.display = "table";
+            handleResponse(xhr.responseText);
+        }
+    };
+
+    function handleResponse(response) {
+        var entries = JSON.parse(response);
+        entries.forEach(function (entrie) {
+            addRow(entrie.date, entrie.time, entrie.value, entrie.unit);
+        })
+    }
+
+    function addRow(date, time, value, unit) {
+        var table = document.getElementById('entries');
+        var row = table.insertRow();
+        row.insertCell(0).innerText = date;
+        row.insertCell(1).innerText = time;
+        row.insertCell(2).innerText = value;
+        row.insertCell(3).innerText = unit;
+    }
+</script>
+
 <body>
-<h2>Hello World! From HTML</h2>
+<h2 id="status">Loading...</h2>
+<table id="entries" style="display: none">
+    <tr>
+        <td>Date</td>
+        <td>Time</td>
+        <td>value</td>
+        <td>Unit</td>
+    </tr>
+</table>
 </body>
 </html>

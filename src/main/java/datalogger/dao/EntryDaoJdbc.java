@@ -1,8 +1,5 @@
 package datalogger.dao;
 
-import datalogger.dao.EntryDao;
-import datalogger.dao.EntryMapper;
-import datalogger.dao.EntrySql;
 import datalogger.model.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,26 +18,26 @@ public class EntryDaoJdbc implements EntryDao {
     @Override
     public void add(Entry entry) {
         jdbcTemplate.execute(String.format(
-                EntrySql.ADD, entry.getDate(), entry.getTime(), entry.getValue(), entry.getUnit()));
+                EntrySqlConstants.ADD, entry.getDate(), entry.getTime(), entry.getValue(), entry.getUnit()));
     }
 
     @Override
     public void deleteById(long id) {
-        jdbcTemplate.execute(String.format(EntrySql.DELETE_BY_ID, id));
+        jdbcTemplate.execute(String.format(EntrySqlConstants.DELETE_BY_ID, id));
     }
 
     @Override
     public List<Entry> getAll() {
-        return jdbcTemplate.query(EntrySql.GET_ALL, ENTRY_MAPPER);
+        return jdbcTemplate.query(EntrySqlConstants.GET_ALL, ENTRY_MAPPER);
     }
 
     @Override
     public long countEntries() {
-        return jdbcTemplate.queryForObject(EntrySql.COUNT_ALL, Long.class);
+        return jdbcTemplate.queryForObject(EntrySqlConstants.COUNT_ALL, Long.class);
     }
 
     @Override
     public void deleteAll() {
-        jdbcTemplate.execute(EntrySql.DELETE_ALL);
+        jdbcTemplate.execute(EntrySqlConstants.DELETE_ALL);
     }
 }
