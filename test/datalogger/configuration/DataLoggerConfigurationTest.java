@@ -15,8 +15,10 @@ public class DataLoggerConfigurationTest {
         Source source = new Source();
         source.setType(Source.Type.COIL);
         source.setName("SomeName");
+        source.setUnits("Unit");
         source.setAddress(999);
         source.setDataType(Source.DataType.FOUR_BYTE_FLOAT);
+        source.setPollingTime(12);
 
         // Serial Slave nodes creation and add source
         SerialSlave serialSlave1 = new SerialSlave();
@@ -63,8 +65,6 @@ public class DataLoggerConfigurationTest {
                 .createDemoConfig().getTcpSlaves().get(0).getSources().size());
         Assert.assertEquals(4, DataLoggerConfiguration
                 .createDemoConfig().getSerialConfiguration().getSlaves().get(0).getSources().size());
-
-        DataLoggerConfiguration.save(DataLoggerConfiguration.createDemoConfig());
 
     }
 

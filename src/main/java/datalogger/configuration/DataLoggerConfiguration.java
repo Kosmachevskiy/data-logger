@@ -62,12 +62,12 @@ public class DataLoggerConfiguration {
 
         TcpSlave tcpSlave = new TcpSlave();
         tcpSlave.setId(1);
-        tcpSlave.getSources().add(new Source("Door contact", "Open/Close", Source.Type.COIL, 100, 5));
-        tcpSlave.getSources().add(new Source("Binary Sensor", "True/False", Source.Type.INPUT, 200, 10));
+        tcpSlave.getSources().add(new Source("Door contact", "Open/Close", Source.Type.COIL, 100, 3));
+        tcpSlave.getSources().add(new Source("Binary Sensor", "True/False", Source.Type.INPUT, 200, 3));
         tcpSlave.getSources().add(new Source("Brightness", "Lux", Source.Type.INPUT_REGISTER,
-                300, 10, Source.DataType.FOUR_BYTE_INT_UNSIGNED));
+                300, 5, Source.DataType.FOUR_BYTE_INT_UNSIGNED));
         tcpSlave.getSources().add(new Source("Weight", "Kg", Source.Type.HOLDING_REGISTER,
-                400, 50, Source.DataType.FOUR_BYTE_FLOAT));
+                400, 9, Source.DataType.FOUR_BYTE_FLOAT));
 
         SerialSlave serialSlave = new SerialSlave();
         serialSlave.setId(1);

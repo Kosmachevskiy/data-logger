@@ -28,7 +28,7 @@ public class SourcesBatchTest {
 
     @Test(expected = IllegalArgumentException.class)
     public  void mapDataTypeToNativeDataTypeException(){
-        // By default DataType is not specified and
+        // By default DataType is not specified
         Source source = new Source();
         sourcesBatch.mapDataTypeToNativeDataType(source.getDataType());
     }

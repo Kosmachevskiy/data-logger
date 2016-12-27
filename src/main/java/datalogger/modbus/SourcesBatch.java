@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * @author Konstantin Kosmachevskiy
  */
-public class SourcesBatch extends BatchRead<Source> {
+class SourcesBatch extends BatchRead<Source> {
 
     private static final Logger logger = LoggerFactory.getLogger(SourcesBatch.class);
 

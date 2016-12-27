@@ -2,6 +2,7 @@ package datalogger;
 
 import datalogger.dao.EntryDao;
 import datalogger.dao.EntryDaoJdbc;
+import datalogger.modbus.ModbusService;
 import datalogger.model.Entry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -19,7 +20,8 @@ public class AppConfig {
     public static final String DRIVER_NAME = "org.h2.Driver";
     public static final String DATA_BASE = "jdbc:h2:./data-logger-database";
     public static final String DB_SCHEMA =
-            "CREATE TABLE IF NOT EXISTS entries (id identity, date DATE, time TIME, value VARCHAR(255), unit VARCHAR(20));";
+            "CREATE TABLE IF NOT EXISTS entries (id identity, date DATE, time TIME, " +
+                    "name VARCHAR (50) ,value VARCHAR(255), unit VARCHAR(20));";
 
     private DataSource createDataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
@@ -40,14 +42,18 @@ public class AppConfig {
         return entryDao;
     }
 
-    @PostConstruct
-    public void testData() {
-        jdbcTemplate().execute(DB_SCHEMA);
+    @Bean
+    public ModbusService modbusService(){
+        return  new ModbusService();
+    }
 
+    @PostConstruct
+    public void initDatabaseAndDemoData() {
+        jdbcTemplate().execute(DB_SCHEMA);
         EntryDao dao = getDao();
         dao.deleteAll();
         for (int i = 0; i < 10; i++) {
-            Entry entry = new Entry("Value " + i, "Unit");
+            Entry entry = new Entry("Sourse" + i,"Value " + i, "Unit");
             dao.add(entry);
         }
     }

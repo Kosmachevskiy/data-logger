@@ -9,7 +9,7 @@ import java.io.OutputStream;
 /**
  * @author Konstantin Kosmachevskiy
  */
-public class PortWrapper implements SerialPortWrapper {
+class PortWrapper implements SerialPortWrapper {
 
     private SerialPort serialPort;
 

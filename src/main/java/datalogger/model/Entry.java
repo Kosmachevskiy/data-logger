@@ -13,10 +13,12 @@ public class Entry {
     private Time time;
     private String value;   
     private String unit;
+    private String name;
 
-    public Entry(String value, String unit) {
+    public Entry(String name, String value, String unit) {
         this.date = new Date(System.currentTimeMillis());
         this.time = new Time(System.currentTimeMillis());
+        this.name = name;
         this.value = value;
         this.unit = unit;
     }

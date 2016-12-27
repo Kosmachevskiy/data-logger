@@ -28,10 +28,10 @@ import static org.junit.Assert.assertFalse;
 public class EntryDaoJdbcTest {
 
     private final Entry[] TEST_DATA = {
-            new Entry("12.1", "units"),
-            new Entry("14.2", "units"),
-            new Entry("13.3", "units"),
-            new Entry("11.4", "units"),
+            new Entry("Source1", "12.1", "units"),
+            new Entry("Source2", "14.2", "units"),
+            new Entry("Source3", "13.3", "units"),
+            new Entry("Source4", "11.4", "units"),
     };
 
     @Autowired
@@ -46,8 +46,8 @@ public class EntryDaoJdbcTest {
 
             for (Entry entry : TEST_DATA) {
                 connection.createStatement().execute(
-                        String.format("INSERT INTO entries (date, time , value, unit) VALUES('%s', '%s', '%s','%s');",
-                                entry.getDate(), entry.getTime(), entry.getValue(), entry.getUnit()));
+                        String.format("INSERT INTO entries (date, time , name, value, unit) VALUES('%s', '%s', '%s','%s', '%s');",
+                                entry.getDate(), entry.getTime(), entry.getName(), entry.getValue(), entry.getUnit()));
             }
 
             connection.close();
@@ -80,7 +80,7 @@ public class EntryDaoJdbcTest {
     @Test
     public void youCanAdd() throws Exception {
         long before = countAll();
-        entryDao.add(new Entry("666.66", "unit"));
+        entryDao.add(new Entry("SomeName", "666.66", "unit"));
         long after = countAll();
 
         assertEquals(++before, after);
@@ -92,13 +92,13 @@ public class EntryDaoJdbcTest {
         List<Entry> entries = new ArrayList<>();
         while (resultSet.next())
             entries.add(new Entry(resultSet.getLong(1), resultSet.getDate(2), resultSet.getTime(3),
-                    resultSet.getString(4), resultSet.getString(5)));
+                    resultSet.getString(4), resultSet.getString(5), resultSet.getString(6)));
 
 
         Entry entry = entries.get(0);
         entryDao.deleteById(entry.getId());
 
-        assertEquals(TEST_DATA.length - 1, entryDao.countEntries());
+        assertEquals(TEST_DATA.length - 1, countAll());
         assertFalse(entryDao.getAll().contains(entry));
     }
 
