@@ -17,7 +17,7 @@ import java.io.IOException;
 /**
  * Created by Konstantin Kosmachevskiy on 18.11.16.
  */
-@WebServlet(urlPatterns = {"/entries"})
+@WebServlet(urlPatterns = {"/api/entries"})
 public class EntriesServlet extends HttpServlet {
 
     @Autowired

@@ -10,31 +10,74 @@
     <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
+    <script type="text/javascript" src="cookies.js"></script>
 
     <script type="text/javascript">
-        var xhr = new XMLHttpRequest();
-        var ENTRIES_URL = '/entries';
-        var REPORT_URL = '/report';
 
-        function init() {
-            xhr.open('GET', ENTRIES_URL, true);
-            xhr.send();
-            setStatus("Loading...");
+        var API_URL = '/api';
+        var ENTRIES_URL = API_URL + '/entries';
+        var REPORT_URL = API_URL + '/report';
+        var CREDENTIALS_COOKIE_NAME = "credentials";
+        var LOG_FILE_NAME = "log.xlsx";
+
+        function setCredentials(credentials) {
+            setCookie(CREDENTIALS_COOKIE_NAME, credentials);
         }
 
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState != 4) return;
-            if (xhr.status != 200) {
-                setStatus("Something happened. Error code: " + xhr.status);
+        function getCredentials() {
+            return getCookie(CREDENTIALS_COOKIE_NAME);
+        }
+
+        function login() {
+            var name = document.getElementById("username").value;
+            var pass = document.getElementById("password").value;
+
+            if (name.length > 0 && pass.length > 0) {
+                setCredentials(window.btoa(name + ":" + pass));
+                initAndLoadEntries();
+            } else {
+                setStatus("Enter username and  password.")
             }
-            else {
+        }
+
+        function logout() {
+            deleteCookie(CREDENTIALS_COOKIE_NAME);
+            initAndLoadEntries();
+        }
+
+        function initAndLoadEntries() {
+            setStatus("Loading...");
+            hideForm("login-form");
+            hideForm("main-form");
+
+            var entriesRequest = new XMLHttpRequest();
+            entriesRequest.open('GET', ENTRIES_URL, true);
+            entriesRequest.setRequestHeader("Authorization", "Basic" + " " + getCredentials());
+            entriesRequest.onreadystatechange = function () {
+
                 setStatus("");
-                handleResponse(xhr.responseText);
-            }
-        };
+                if (entriesRequest.readyState != 4) return;
+                if (entriesRequest.status == 200) {
+                    showForm("main-form");
+                    handleResponse(entriesRequest.response);
+                }
+                else if (entriesRequest.status = 401) {
+                    showForm("login-form");
+                }
+                else {
+                    setStatus("Error " + entriesRequest.status + ". " + entriesRequest.statusText);
+                }
+            };
+            entriesRequest.send();
+        }
 
         function handleResponse(response) {
+            /*Clear table. Deleting all rows except header.*/
+            var table = document.getElementById('entries');
+            while (table.rows.length > 1) {
+                table.deleteRow(1);
+            }
+            /*Place content*/
             var entries = JSON.parse(response);
             entries.forEach(function (entrie) {
                 addRow(entrie.date, entrie.time, entrie.value, entrie.unit);
@@ -50,41 +93,101 @@
             row.insertCell(3).innerText = unit;
         }
 
+        function downloadReport() {
+            var xhr = new XMLHttpRequest();
+            xhr.responseType = 'blob';
+            xhr.onload = function () {
+                var tempElement = document.createElement('a');
+                tempElement.href = window.URL.createObjectURL(xhr.response);
+                tempElement.download = LOG_FILE_NAME;
+                tempElement.style.display = 'none';
+                document.body.appendChild(tempElement);
+                tempElement.click();
+                delete tempElement;
+            };
+            xhr.open('GET', REPORT_URL, true);
+            xhr.setRequestHeader("Authorization", "Basic" + " " + getCredentials());
+            xhr.send();
+        }
+
         function setStatus(text) {
+            /*Hide block if no content*/
+            if (text.length > 0)
+                showForm("status-bar");
+            else
+                hideForm("status-bar");
+
+            /*Plece text*/
             try {
-                document.getElementById("status").innerText = text;
+                document.getElementById("status-bar-text").innerText = text;
             } catch (e) {
                 console.log("Error : " + e.name);
             }
         }
 
-        function downloadReport() {
-            window.location.assign(REPORT_URL);
+        function showForm(id) {
+            document.getElementById(id).style.display = "block";
+        }
+
+        function hideForm(id) {
+            document.getElementById(id).style.display = "none";
+        }
+
+        function loginByEnter(event) {
+            if (event.keyCode == 13) {
+                login();
+            }
         }
     </script>
 
-
     <title>
-        Data-logger
+        dataType-logger
     </title>
 </head>
 
-<body onload="init();">
+<body onload="initAndLoadEntries();">
 
-<div class="container">
-    <h2 id="status"></h2>
-    <button type="button" class="btn btn-default" onclick="downloadReport()">Export in XLSX-file</button>
-    <div class="table-responsive">
-        <table class="table" id="entries">
-            <thead>
-            <tr>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Value</th>
-                <th>Unit</th>
-            </tr>
-            </thead>
-        </table>
+<div class="container" style="min-width: 350px;">
+
+    <!--Status bar-->
+    <div id="status-bar" style="text-align: center; margin-top: 10px;">
+        <span id="status-bar-text" class="label label-info" style="display:inline-block;"></span>
+    </div>
+
+    <!--Login form-->
+    <div id="login-form" style="width: 33%; margin-left: auto; margin-right: auto; margin-top: 10px;">
+        <div class="form-group">
+            <label for="username">Name:</label>
+            <input type="text" class="form-control" id="username" placeholder="Enter username"
+                   onkeypress="loginByEnter(event)">
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" class="form-control" id="password" placeholder="Enter password"
+                   onkeypress="loginByEnter(event)">
+        </div>
+        <div class="form-group">
+            <button type="button" class="btn btn-primary" style="width: 100%;" onclick="login()">Login</button>
+        </div>
+    </div>
+
+    <!--Main form-->
+    <div id="main-form" style="margin-top: 10px;">
+        <button type="button" class="btn btn-primary" onclick="downloadReport()">Export in *.xlsx file and download
+        </button>
+        <button type="button" class="btn btn-primary" onclick="logout()" style="float: right">Logout</button>
+        <div class="table-responsive" style="margin-top: 10px;">
+            <table class="table" id="entries">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Value</th>
+                    <th>Unit</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
     </div>
 </div>
 

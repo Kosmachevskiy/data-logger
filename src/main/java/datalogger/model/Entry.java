@@ -11,7 +11,7 @@ public class Entry {
     private long id;
     private Date date;
     private Time time;
-    private String value;
+    private String value;   
     private String unit;
 
     public Entry(String value, String unit) {

@@ -21,10 +21,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 /**
- * Created by Konstantin Kosmachevskiy on 04.11.16.
+ * @author Konstantin Kosmachevskiy
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = AppConfig.class, loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = {AppConfig.class}, loader = AnnotationConfigContextLoader.class)
 public class EntryDaoJdbcTest {
 
     private final Entry[] TEST_DATA = {
@@ -42,10 +42,12 @@ public class EntryDaoJdbcTest {
         try {
             Connection connection = getConnection();
 
-            connection.createStatement().execute(EntrySqlConstants.DELETE_ALL);
+            connection.createStatement().execute("DELETE FROM entries;");
+
             for (Entry entry : TEST_DATA) {
                 connection.createStatement().execute(
-                        String.format(EntrySqlConstants.ADD, entry.getDate(), entry.getTime(), entry.getValue(), entry.getUnit()));
+                        String.format("INSERT INTO entries (date, time , value, unit) VALUES('%s', '%s', '%s','%s');",
+                                entry.getDate(), entry.getTime(), entry.getValue(), entry.getUnit()));
             }
 
             connection.close();
@@ -59,7 +61,7 @@ public class EntryDaoJdbcTest {
         long count = -1;
         try {
             Connection connection = getConnection();
-            ResultSet resultSet = connection.createStatement().executeQuery(EntrySqlConstants.COUNT_ALL);
+            ResultSet resultSet = connection.createStatement().executeQuery("SELECT COUNT(*) FROM ENTRIES");
             resultSet.next();
             count = resultSet.getLong(1);
             connection.close();
@@ -86,7 +88,7 @@ public class EntryDaoJdbcTest {
 
     @Test
     public void youCanDeleteById() throws Exception {
-        ResultSet resultSet = getConnection().createStatement().executeQuery(EntrySqlConstants.GET_ALL);
+        ResultSet resultSet = getConnection().createStatement().executeQuery("SELECT * FROM ENTRIES");
         List<Entry> entries = new ArrayList<>();
         while (resultSet.next())
             entries.add(new Entry(resultSet.getLong(1), resultSet.getDate(2), resultSet.getTime(3),

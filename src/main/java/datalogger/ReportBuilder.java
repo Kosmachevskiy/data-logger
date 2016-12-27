@@ -15,27 +15,26 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-/**
- * Created by Konstantin Kosmachevskiy on 20.11.16.
- */
-
 @Service
 public class ReportBuilder {
 
-    private static final String REPORT_TMP_FILE_PATH = "/home/toss/report.xlsx";
+    //TODO: to fix trouble with file location and permission
+    private static final String REPORT_TMP_FILE_PATH = "./dataType-logger-report.xlsx";
     @Autowired
     private EntryDao entryDao;
-    //TODO: fix trouble with file location and permission
 
     public File buildReport() {
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet sheet = workbook.createSheet();
-        XSSFRow row;
+
         CellStyle cellDateStyle = workbook.createCellStyle();
         CellStyle cellTimeStyle = workbook.createCellStyle();
+
         CreationHelper creationHelper = workbook.getCreationHelper();
         cellDateStyle.setDataFormat(creationHelper.createDataFormat().getFormat("d/m/yy"));
         cellTimeStyle.setDataFormat(creationHelper.createDataFormat().getFormat("h:mm:s"));
+
+        XSSFRow row;
 
         int rowNum = 0;
         row = sheet.createRow(rowNum);

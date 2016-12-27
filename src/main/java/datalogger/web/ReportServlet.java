@@ -19,7 +19,7 @@ import java.io.OutputStream;
 /**
  * Created by Konstantin Kosmachevskiy on 20.11.16.
  */
-@WebServlet(urlPatterns = {"/report"})
+@WebServlet(urlPatterns = {"/api/report"})
 public class ReportServlet extends HttpServlet {
 
     @Autowired
@@ -27,6 +27,7 @@ public class ReportServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
+
         File report = reportBuilder.buildReport();
         FileInputStream fileInputStream = new FileInputStream(report);
 
