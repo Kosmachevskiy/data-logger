@@ -1,12 +1,21 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.java.datalogger</groupId>
+
+    <groupId>datalogger</groupId>
     <artifactId>data-logger</artifactId>
-    <packaging>war</packaging>
-    <version>1.0-SNAPSHOT</version>
     <name>data-logger</name>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
     <url>https://github.com/Kosmachevskiy/data-logger</url>
+
+    <developers>
+        <developer>
+            <name>Konstantin Kosmachevskiy</name>
+            <email>k.kosmachevskiy@gmail.com</email>
+            <url>https://www.facebook.com/kosmachevskiy</url>
+        </developer>
+    </developers>
 
     <properties>
         <spring.version>RELEASE</spring.version>

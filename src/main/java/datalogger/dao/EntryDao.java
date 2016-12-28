@@ -2,7 +2,6 @@ package datalogger.dao;
 
 import datalogger.model.Entry;
 
-import java.sql.Connection;
 import java.util.List;
 
 /**
