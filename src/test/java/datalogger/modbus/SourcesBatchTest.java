@@ -2,7 +2,9 @@ package datalogger.modbus;
 
 import com.serotonin.modbus4j.code.DataType;
 import datalogger.configuration.Source;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -30,7 +32,7 @@ public class SourcesBatchTest {
     public  void mapDataTypeToNativeDataTypeException(){
         // By default DataType is not specified
         Source source = new Source();
-        sourcesBatch.mapDataTypeToNativeDataType(source.getDataType());
+        SourcesBatch.mapDataTypeToNativeDataType(source.getDataType());
     }
 
     @Test
