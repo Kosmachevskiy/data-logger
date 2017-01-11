@@ -2,7 +2,6 @@ package datalogger;
 
 import datalogger.dao.EntryDao;
 import datalogger.dao.EntryDaoJdbc;
-import datalogger.modbus.ModbusService;
 import datalogger.model.Entry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -40,11 +39,6 @@ public class AppConfig {
     public EntryDao getDao() {
         EntryDao entryDao = new EntryDaoJdbc();
         return entryDao;
-    }
-
-    @Bean
-    public ModbusService modbusService(){
-        return  new ModbusService();
     }
 
     @PostConstruct

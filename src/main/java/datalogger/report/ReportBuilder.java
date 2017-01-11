@@ -1,4 +1,4 @@
-package datalogger;
+package datalogger.report;
 
 import datalogger.dao.EntryDao;
 import datalogger.model.Entry;

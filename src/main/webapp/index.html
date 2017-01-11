@@ -17,8 +17,10 @@
         var API_URL = '/api';
         var ENTRIES_URL = API_URL + '/entries';
         var REPORT_URL = API_URL + '/report';
+        var SETTINGS_URL = API_URL + '/setting';
         var CREDENTIALS_COOKIE_NAME = "credentials";
         var LOG_FILE_NAME = "log.xlsx";
+        var CONFIG_FILE_NAME = "data-logger-config.xml";
 
         function setCredentials(credentials) {
             setCookie(CREDENTIALS_COOKIE_NAME, credentials);
@@ -94,20 +96,54 @@
         }
 
         function downloadReport() {
+            downloadFile(REPORT_URL, LOG_FILE_NAME);
+        }
+
+        function downloadConfig() {
+            downloadFile(SETTINGS_URL, CONFIG_FILE_NAME);
+        }
+
+        function downloadFile(url, fileName) {
             var xhr = new XMLHttpRequest();
             xhr.responseType = 'blob';
             xhr.onload = function () {
                 var tempElement = document.createElement('a');
                 tempElement.href = window.URL.createObjectURL(xhr.response);
-                tempElement.download = LOG_FILE_NAME;
+                tempElement.download = fileName;
                 tempElement.style.display = 'none';
                 document.body.appendChild(tempElement);
                 tempElement.click();
                 delete tempElement;
             };
-            xhr.open('GET', REPORT_URL, true);
+            xhr.open('GET', url, true);
             xhr.setRequestHeader("Authorization", "Basic" + " " + getCredentials());
             xhr.send();
+        }
+
+        function pickFile() {
+            document.getElementById("pick-file").click();
+        }
+
+        function uploadFile() {
+
+            var fileUploadRequest = new XMLHttpRequest();
+
+            fileUploadRequest.onload = fileUploadRequest.onerror = function () {
+                if (this.status == 200) {
+                    console.log("Uploading success");
+                } else {
+                    console.log("Uploading error " + this.status);
+                }
+            };
+
+            fileUploadRequest.open("POST", SETTINGS_URL, true);
+            fileUploadRequest.setRequestHeader("Authorization", "Basic" + " " + getCredentials());
+
+            var file = document.getElementById("pick-file").files[0];
+            var formData = new FormData();
+            formData.append("file", file);
+
+            fileUploadRequest.send(formData);
         }
 
         function setStatus(text) {
@@ -117,7 +153,7 @@
             else
                 hideForm("status-bar");
 
-            /*Plece text*/
+            /*Place text*/
             try {
                 document.getElementById("status-bar-text").innerText = text;
             } catch (e) {
@@ -175,6 +211,13 @@
     <div id="main-form" style="margin-top: 10px;">
         <button type="button" class="btn btn-primary" onclick="downloadReport()">Export in *.xlsx file and download
         </button>
+        <button type="button" class="btn btn-primary" onclick="downloadConfig()">Download current config
+        </button>
+        <button type="button" class="btn btn-primary" onclick="pickFile()">Pick config file</button>
+        <button type="button" class="btn btn-primary" onclick="uploadFile()">Upload config</button>
+
+        <input id="pick-file" type="file" style="display: none" name="config-file"/>
+
         <button type="button" class="btn btn-primary" onclick="logout()" style="float: right">Logout</button>
         <div class="table-responsive" style="margin-top: 10px;">
             <table class="table" id="entries">

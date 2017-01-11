@@ -18,17 +18,17 @@ public class DataLoggerConfiguration {
     //TODO: to change default location
     public static final String DEFAULT_CONFIG_FILE_LOCATION = "./data-logger-config.xml";
 
-    @XmlElement(name = "serial")
-    private SerialConfiguration serialConfiguration = new SerialConfiguration();
-    @XmlElementWrapper(name = "tcp")
-    @XmlElement(name = "slave")
-    private List<TcpSlave> tcpSlaves = new ArrayList<TcpSlave>();
-
     static {
         File file = new File(DEFAULT_CONFIG_FILE_LOCATION);
         if (!file.exists())
             save(new DataLoggerConfiguration());
     }
+
+    @XmlElement(name = "serial")
+    private SerialConfiguration serialConfiguration = new SerialConfiguration();
+    @XmlElementWrapper(name = "tcp")
+    @XmlElement(name = "slave")
+    private List<TcpSlave> tcpSlaves = new ArrayList<TcpSlave>();
 
     public static DataLoggerConfiguration load() {
         DataLoggerConfiguration configuration = new DataLoggerConfiguration();
@@ -77,6 +77,10 @@ public class DataLoggerConfiguration {
         configuration.getSerialConfiguration().getSlaves().add(serialSlave);
 
         return configuration;
+    }
+
+    public static File getConfigFile() {
+        return new File(DEFAULT_CONFIG_FILE_LOCATION);
     }
 
 }
