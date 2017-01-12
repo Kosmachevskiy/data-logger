@@ -14,7 +14,6 @@ import datalogger.model.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Konstantin Kosmachevskiy
  */
-@Service
 public class ModbusService {
 
     private static final Logger logger = LoggerFactory.getLogger(ModbusService.class);
@@ -34,6 +32,15 @@ public class ModbusService {
     private ScheduledExecutorService service;
     @Autowired
     private EntryDao entryDao;
+
+    {   // TODO: is it work as I expect?
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                shutDown();
+            }
+        });
+    }
 
     public void start() {
 
@@ -128,7 +135,7 @@ public class ModbusService {
         private ModbusMaster master;
         private SourcesBatch batch;
 
-        public Poller(ModbusMaster master, SourcesBatch batch) {
+        Poller(ModbusMaster master, SourcesBatch batch) {
             this.master = master;
             this.batch = batch;
 

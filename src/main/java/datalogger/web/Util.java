@@ -9,17 +9,10 @@ import java.io.OutputStream;
 /**
  * @author Konstantin Kosmachevskiy
  */
-public class Util {
+class Util {
     static void sendFile(HttpServletResponse response, File file) throws IOException {
         FileInputStream fileInputStream = new FileInputStream(file);
 
-        // TODO: remove this?
-//        ServletContext context = servlet.getServletContext();
-//
-//        String mimeType = context.getMimeType(file.getPath());
-//        if (mimeType == null) {
-//            mimeType = "application/octet-stream";
-//        }
         response.setContentType("application/octet-stream");
         response.setContentLength((int) file.length());
 
@@ -30,7 +23,7 @@ public class Util {
         OutputStream outStream = response.getOutputStream();
 
         byte[] buffer = new byte[4096];
-        int bytesRead = -1;
+        int bytesRead;
 
         while ((bytesRead = fileInputStream.read(buffer)) != -1) {
             outStream.write(buffer, 0, bytesRead);

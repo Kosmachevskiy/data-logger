@@ -57,7 +57,7 @@ public class SettingsServlet extends HttpServlet {
                         fileOutputStream.write(fileContent.read());
                     fileOutputStream.close();
 
-                    //TODO: restart modbusService here
+                    modbusService.start();
                     resp.setStatus(200);
                 }
             }

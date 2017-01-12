@@ -48,9 +48,9 @@
         }
 
         function initAndLoadEntries() {
-            setStatus("Loading...");
             hideForm("login-form");
             hideForm("main-form");
+            setStatus("Loading...");
 
             var entriesRequest = new XMLHttpRequest();
             entriesRequest.open('GET', ENTRIES_URL, true);
@@ -63,7 +63,7 @@
                     showForm("main-form");
                     handleResponse(entriesRequest.response);
                 }
-                else if (entriesRequest.status = 401) {
+                else if (entriesRequest.status == 401) {
                     showForm("login-form");
                 }
                 else {
@@ -174,10 +174,11 @@
                 login();
             }
         }
+
     </script>
 
     <title>
-        dataType-logger
+        data-logger
     </title>
 </head>
 
