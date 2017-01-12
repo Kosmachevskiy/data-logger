@@ -1,13 +1,18 @@
 package datalogger.web;
 
 import datalogger.configuration.DataLoggerConfiguration;
+import datalogger.modbus.ModbusService;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.multipart.ByteArrayPartSource;
 import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
@@ -18,6 +23,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 /**
  * @author Konstantin Kosmachevskiy
  */
@@ -26,11 +34,22 @@ public class SettingsServletTest {
     private static final String TEST_DATA = "data";
     private static final String FILE_NAME = "some.file";
 
+    @Mock
+    private ModbusService modbusService;
+    @InjectMocks
+    private SettingsServlet servlet;
+
+
+    @Before
+    public void setUp() throws Exception {
+        servlet = new SettingsServlet();
+        MockitoAnnotations.initMocks(this);
+    }
+
     @Test
     public void testDoPost() throws IOException, ServletException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
-        SettingsServlet servlet = new SettingsServlet();
 
         createMultipartFormDataRequest(request);
 
@@ -39,6 +58,8 @@ public class SettingsServletTest {
         Assert.assertFalse(file.exists());
 
         servlet.doPost(request, response);
+
+        verify(modbusService, times(1)).start();
 
         Assert.assertEquals(200, response.getStatus());
 
