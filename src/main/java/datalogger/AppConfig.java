@@ -1,18 +1,25 @@
 package datalogger;
 
-import datalogger.configuration.DataLoggerConfiguration;
 import datalogger.dao.EntryDao;
 import datalogger.dao.EntryDaoJdbc;
 import datalogger.modbus.ModbusService;
 import datalogger.model.Entry;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
+import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 @ComponentScan(basePackages = "datalogger")
@@ -37,31 +44,51 @@ public class AppConfig {
     }
 
     @Bean
-    public EntryDao getDao() {
+    public EntryDao entryDao() {
         return new EntryDaoJdbc();
     }
 
+    @PostConstruct
+    public void init(){
+        jdbcTemplate().execute(DB_SCHEMA);
+    }
+
     @Bean
+    @Profile("production")
     public ModbusService modbusService() {
         ModbusService service = new ModbusService();
-//        service.start(); //TODO: uncomment this before release
+        service.start();
         return service;
     }
 
-    @PostConstruct // TODO: make this optional
-    public void initDatabaseAndDemoData() {
-        // Prepare DB //
-        jdbcTemplate().execute(DB_SCHEMA);
-        EntryDao dao = getDao();
-        dao.deleteAll();
-        // Fill  DB //
-        for (int i = 0; i < 10; i++) {
-            Entry entry = new Entry("Source" + i, "Value " + i, "Unit");
-            dao.add(entry);
-        }
-        // Reset config and start polling //
-        DataLoggerConfiguration.save(DataLoggerConfiguration.createDemoConfig());
-        modbusService().start();
-    }
+    @Service
+    @Profile("demo")
+    static class FakePoller {
 
+        private static final long POLLING_TIME = 1;
+        private static final int NUMBER_OF_SOURCES = 4;
+        private ScheduledExecutorService service;
+        @Autowired
+        private EntryDao entryDao;
+
+        @PostConstruct
+        public void init(){
+            entryDao.deleteAll();
+
+            service = Executors.newSingleThreadScheduledExecutor();
+            service.scheduleAtFixedRate(() -> {
+                Random random = new Random(System.currentTimeMillis());
+                entryDao.add(new Entry(
+                        "Source " + (random.nextInt(NUMBER_OF_SOURCES)+1),
+                        String.valueOf((random.nextInt(99)+1)),
+                        "Unit"));
+            }, POLLING_TIME, POLLING_TIME, TimeUnit.SECONDS);
+        }
+
+        @PreDestroy
+        public void destroy(){
+            if (service!=null)
+                service.shutdownNow();
+        }
+    }
 }

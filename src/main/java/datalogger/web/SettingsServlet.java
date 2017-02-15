@@ -27,7 +27,7 @@ import java.util.List;
 @WebServlet(urlPatterns = {"/api/setting"})
 public class SettingsServlet extends HttpServlet {
 
-    @Autowired
+    @Autowired(required = false)
     private ModbusService modbusService;
 
     @Override

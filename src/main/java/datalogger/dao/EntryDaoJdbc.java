@@ -45,9 +45,6 @@ public class EntryDaoJdbc implements EntryDao {
         jdbcTemplate.execute(EntrySqlConstants.DELETE_ALL);
     }
 
-    /**
-     * Created by Konstantin Kosmachevskiy on 04.11.16.
-     */
     private static final class EntrySqlConstants {
         static final String ADD = "INSERT INTO entries (date, time , value, unit, name) " +
                 "VALUES('%s', '%s', '%s','%s', '%s');";
