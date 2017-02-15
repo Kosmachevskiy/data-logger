@@ -1,4 +1,4 @@
-package datalogger.dao;
+package datalogger.model.dao;
 
 import datalogger.AppConfig;
 import datalogger.model.Entry;
@@ -6,6 +6,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
@@ -25,6 +28,10 @@ import static org.junit.Assert.assertFalse;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {AppConfig.class}, loader = AnnotationConfigContextLoader.class)
+@PropertySources({
+        @PropertySource("classpath:app.properties"),
+        @PropertySource("classpath:db.properties")
+})
 public class EntryDaoJdbcTest {
 
     private final Entry[] TEST_DATA = {
@@ -36,6 +43,9 @@ public class EntryDaoJdbcTest {
 
     @Autowired
     private EntryDao entryDao;
+    @Autowired
+    private Environment env;
+
 
     @Before
     public void before() {
@@ -73,8 +83,8 @@ public class EntryDaoJdbcTest {
     }
 
     private Connection getConnection() throws ClassNotFoundException, SQLException {
-        Class.forName(AppConfig.DRIVER_NAME);
-        return DriverManager.getConnection(AppConfig.DATA_BASE);
+        Class.forName(env.getProperty("db.driver"));
+        return DriverManager.getConnection(env.getProperty("db.url"));
     }
 
     @Test

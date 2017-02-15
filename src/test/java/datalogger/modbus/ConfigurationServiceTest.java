@@ -1,12 +1,19 @@
-package datalogger.configuration;
+package datalogger.modbus;
 
+import datalogger.modbus.configuration.DataLoggerConfiguration;
+import datalogger.modbus.configuration.SerialSlave;
+import datalogger.modbus.configuration.Source;
+import datalogger.modbus.configuration.TcpSlave;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * @author Konstantin Kosmachevskiy
  */
-public class DataLoggerConfigurationTest {
+public class ConfigurationServiceTest {
+
+    private static ConfigurationService configurationService = new ConfigurationService("");
+
     @Test
     public void saveAndLoad() throws Exception {
         DataLoggerConfiguration configuration = new DataLoggerConfiguration();
@@ -54,16 +61,16 @@ public class DataLoggerConfigurationTest {
         configuration.getTcpSlaves().add(tcpSlave1);
         configuration.getTcpSlaves().add(tcpSlave2);
 
-        Assert.assertTrue(DataLoggerConfiguration.save(configuration));
-        Assert.assertEquals(DataLoggerConfiguration.load(), configuration);
+        Assert.assertTrue(configurationService.save(configuration));
+        Assert.assertEquals(configurationService.load(), configuration);
     }
 
     @Test
     public void defaultConfig(){
         // There are four sources in Demo configuration
-        Assert.assertEquals(4, DataLoggerConfiguration
+        Assert.assertEquals(4, configurationService
                 .createDemoConfig().getTcpSlaves().get(0).getSources().size());
-        Assert.assertEquals(4, DataLoggerConfiguration
+        Assert.assertEquals(4, configurationService
                 .createDemoConfig().getSerialConfiguration().getSlaves().get(0).getSources().size());
 
     }

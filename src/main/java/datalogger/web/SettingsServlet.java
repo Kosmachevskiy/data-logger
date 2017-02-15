@@ -1,7 +1,7 @@
 package datalogger.web;
 
-import datalogger.configuration.DataLoggerConfiguration;
-import datalogger.modbus.ModbusService;
+import datalogger.modbus.ConfigurationService;
+import datalogger.modbus.ModbusPollerService;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -15,10 +15,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -28,11 +25,13 @@ import java.util.List;
 public class SettingsServlet extends HttpServlet {
 
     @Autowired(required = false)
-    private ModbusService modbusService;
+    private ModbusPollerService modbusPollerService;
+    @Autowired
+    private ConfigurationService configurationService;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
-        Util.sendFile(response, DataLoggerConfiguration.getConfigFile());
+        Util.sendFile(response, configurationService.getConfigFileFullPath());
     }
 
     @Override
@@ -46,18 +45,10 @@ public class SettingsServlet extends HttpServlet {
             for (FileItem item : items) {
                 if (!item.isFormField()) {
 
-                    // TODO: maybe better to create a new config via static method of DataLoggerConfiguration class or via ConfigService?
-                    File file = new File(DataLoggerConfiguration.DEFAULT_CONFIG_FILE_LOCATION);
-                    file.delete();
-                    file.createNewFile();
-                    FileOutputStream fileOutputStream = new FileOutputStream(file);
+                    configurationService.save(item.getInputStream());
 
-                    InputStream fileContent = item.getInputStream();
-                    while (fileContent.available() > 0)
-                        fileOutputStream.write(fileContent.read());
-                    fileOutputStream.close();
+                    modbusPollerService.start(configurationService.load());
 
-                    modbusService.start();
                     resp.setStatus(200);
                 }
             }
@@ -70,5 +61,13 @@ public class SettingsServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         SpringBeanAutowiringSupport.processInjectionBasedOnServletContext(this, config.getServletContext());
         super.init(config);
+    }
+
+    public ConfigurationService getConfigurationService() {
+        return configurationService;
+    }
+
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 }

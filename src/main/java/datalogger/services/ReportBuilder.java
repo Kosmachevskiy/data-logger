@@ -1,7 +1,7 @@
-package datalogger.report;
+package datalogger.services;
 
-import datalogger.dao.EntryDao;
 import datalogger.model.Entry;
+import datalogger.model.dao.EntryDao;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.xssf.usermodel.XSSFCell;
@@ -9,19 +9,27 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-@Service
+@PropertySource("classpath:app.properties")
 public class ReportBuilder {
 
-    //TODO: to fix trouble with file location and permission
-    private static final String REPORT_TMP_FILE_PATH = "./dataType-logger-report.xlsx";
     @Autowired
     private EntryDao entryDao;
+    @Autowired
+    private Environment environment;
+    private String tmpFile;
+
+    @PostConstruct
+    public void init() {
+        tmpFile = environment.getProperty("app.home") + "data-logger-services.xlsx";
+    }
 
     public File buildReport() {
         XSSFWorkbook workbook = new XSSFWorkbook();
@@ -59,7 +67,7 @@ public class ReportBuilder {
             row.createCell(cellNum++).setCellValue(entry.getUnit());
         }
 
-        File file = new File(REPORT_TMP_FILE_PATH);
+        File file = new File(tmpFile);
         if (file.exists()) file.delete();
 
         try {

@@ -1,7 +1,7 @@
 package datalogger.web;
 
 import com.google.gson.Gson;
-import datalogger.dao.EntryDao;
+import datalogger.model.dao.EntryDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 

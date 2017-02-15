@@ -1,6 +1,6 @@
 package datalogger.web;
 
-import datalogger.report.ReportBuilder;
+import datalogger.services.ReportBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
@@ -15,7 +15,7 @@ import java.io.IOException;
 /**
  * Created by Konstantin Kosmachevskiy on 20.11.16.
  */
-@WebServlet(urlPatterns = {"/api/report"})
+@WebServlet(urlPatterns = {"/api/services"})
 public class ReportServlet extends HttpServlet {
 
     @Autowired

@@ -1,7 +1,7 @@
 package datalogger.modbus;
 
 import com.serotonin.modbus4j.code.DataType;
-import datalogger.configuration.Source;
+import datalogger.modbus.configuration.Source;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;

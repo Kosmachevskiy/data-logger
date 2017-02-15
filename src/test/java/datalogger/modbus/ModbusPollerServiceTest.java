@@ -1,10 +1,10 @@
 package datalogger.modbus;
 
-import datalogger.configuration.DataLoggerConfiguration;
-import datalogger.configuration.SerialSlave;
-import datalogger.configuration.Source;
-import datalogger.configuration.TcpSlave;
-import datalogger.dao.EntryDao;
+import datalogger.modbus.configuration.DataLoggerConfiguration;
+import datalogger.modbus.configuration.SerialSlave;
+import datalogger.modbus.configuration.Source;
+import datalogger.modbus.configuration.TcpSlave;
+import datalogger.model.dao.EntryDao;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -20,12 +20,13 @@ import java.util.Map;
 /**
  * @author Konstantin Kosmachevskiy
  */
-public class ModbusServiceTest {
+public class ModbusPollerServiceTest {
 
     @Mock
     private EntryDao entryDao;
     @InjectMocks
-    private ModbusService modbusService;
+    private ModbusPollerService modbusPollerService;
+    private ConfigurationService configurationService = new ConfigurationService("./");
 
 
     @Before
@@ -47,7 +48,7 @@ public class ModbusServiceTest {
                 Source.Type.INPUT_REGISTER, 400, 700, Source.DataType.EIGHT_BYTE_INT_SIGNED));
 
 
-        Map<Integer, SourcesBatch> map = modbusService.groupSourcesByInterval(sources, slaveId);
+        Map<Integer, SourcesBatch> map = modbusPollerService.groupSourcesByInterval(sources, slaveId);
 
         // Map must contains a 3 Batches
         Assert.assertEquals(3, map.size());
@@ -76,11 +77,11 @@ public class ModbusServiceTest {
         serialSlave.setSources(tcpSlave.getSources());
 
         configuration.getTcpSlaves().add(tcpSlave);
-        DataLoggerConfiguration.save(configuration);
+        configurationService.save(configuration);
 
-        modbusService.start();
+        modbusPollerService.start(configurationService.load());
         Thread.sleep(6_500);
-        modbusService.shutDown();
+        modbusPollerService.shutDown();
 
 //        verify(entryDao, times(8)).add(any());
     }

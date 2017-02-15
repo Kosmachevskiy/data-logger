@@ -1,38 +1,42 @@
-package datalogger.configuration;
+package datalogger.modbus;
 
-import lombok.Data;
+import datalogger.modbus.configuration.DataLoggerConfiguration;
+import datalogger.modbus.configuration.SerialSlave;
+import datalogger.modbus.configuration.Source;
+import datalogger.modbus.configuration.TcpSlave;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
-@XmlRootElement(name = "configuration")
-@XmlAccessorType(XmlAccessType.FIELD)
-@Data
-public class DataLoggerConfiguration {
-    //TODO: to change default location
-    public static final String DEFAULT_CONFIG_FILE_LOCATION = "./data-logger-config.xml";
+/**
+ * @author Konstantin Kosmachevskiy
+ */
+public class ConfigurationService {
+    private static final Logger logger = LoggerFactory.getLogger(ConfigurationService.class);
 
-    static {
-        File file = new File(DEFAULT_CONFIG_FILE_LOCATION);
-        if (!file.exists())
+    private final static String FILE_NAME = "data-logger-config.xml";
+    private final String configFileFullPath;
+
+    public ConfigurationService(String path) {
+        this.configFileFullPath = path + FILE_NAME;
+        File file = new File(configFileFullPath);
+        if (!file.exists()) {
             save(new DataLoggerConfiguration());
+            logger.debug("Config file had created. Path: " + configFileFullPath);
+        }
     }
 
-    @XmlElement(name = "serial")
-    private SerialConfiguration serialConfiguration = new SerialConfiguration();
-    @XmlElementWrapper(name = "tcp")
-    @XmlElement(name = "slave")
-    private List<TcpSlave> tcpSlaves = new ArrayList<TcpSlave>();
-
-    public static DataLoggerConfiguration load() {
+    public DataLoggerConfiguration load() {
         DataLoggerConfiguration configuration = new DataLoggerConfiguration();
-        File file = new File(DEFAULT_CONFIG_FILE_LOCATION);
+        File file = new File(configFileFullPath);
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(DataLoggerConfiguration.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
@@ -43,8 +47,8 @@ public class DataLoggerConfiguration {
         return configuration;
     }
 
-    public static boolean save(DataLoggerConfiguration configuration) {
-        File file = new File(DEFAULT_CONFIG_FILE_LOCATION);
+    public boolean save(DataLoggerConfiguration configuration) {
+        File file = new File(configFileFullPath);
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(DataLoggerConfiguration.class);
             Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
@@ -57,7 +61,26 @@ public class DataLoggerConfiguration {
         }
     }
 
-    public static DataLoggerConfiguration createDemoConfig() {
+    public boolean save(InputStream inputStream) {
+        try {
+            File file = new File(configFileFullPath);
+            file.delete();
+            file.createNewFile();
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+
+            while (inputStream.available() > 0)
+                fileOutputStream.write(inputStream.read());
+            fileOutputStream.close();
+
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+    }
+
+    public DataLoggerConfiguration createDemoConfig() {
         DataLoggerConfiguration configuration = new DataLoggerConfiguration();
 
         TcpSlave tcpSlave = new TcpSlave();
@@ -79,8 +102,8 @@ public class DataLoggerConfiguration {
         return configuration;
     }
 
-    public static File getConfigFile() {
-        return new File(DEFAULT_CONFIG_FILE_LOCATION);
+    public File getConfigFileFullPath() {
+        return new File(configFileFullPath);
     }
 
 }

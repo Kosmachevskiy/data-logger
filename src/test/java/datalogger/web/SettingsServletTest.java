@@ -1,7 +1,7 @@
 package datalogger.web;
 
-import datalogger.configuration.DataLoggerConfiguration;
-import datalogger.modbus.ModbusService;
+import datalogger.modbus.ConfigurationService;
+import datalogger.modbus.ModbusPollerService;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.multipart.ByteArrayPartSource;
 import org.apache.commons.httpclient.methods.multipart.FilePart;
@@ -18,13 +18,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 import javax.servlet.ServletException;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 /**
  * @author Konstantin Kosmachevskiy
@@ -35,14 +29,17 @@ public class SettingsServletTest {
     private static final String FILE_NAME = "some.file";
 
     @Mock
-    private ModbusService modbusService;
+    private ModbusPollerService modbusPollerService;
     @InjectMocks
     private SettingsServlet servlet;
+    @Mock
+    private ConfigurationService configurationService;
 
 
     @Before
     public void setUp() throws Exception {
         servlet = new SettingsServlet();
+        servlet.setConfigurationService(configurationService);
         MockitoAnnotations.initMocks(this);
     }
 
@@ -53,18 +50,9 @@ public class SettingsServletTest {
 
         createMultipartFormDataRequest(request);
 
-        File file = new File(DataLoggerConfiguration.DEFAULT_CONFIG_FILE_LOCATION);
-        file.delete();
-        Assert.assertFalse(file.exists());
-
         servlet.doPost(request, response);
 
-        verify(modbusService, times(1)).start();
-
         Assert.assertEquals(200, response.getStatus());
-
-        byte[] bytes = Files.readAllBytes(Paths.get(DataLoggerConfiguration.DEFAULT_CONFIG_FILE_LOCATION));
-        Assert.assertArrayEquals(TEST_DATA.getBytes(), bytes);
     }
 
     @Test

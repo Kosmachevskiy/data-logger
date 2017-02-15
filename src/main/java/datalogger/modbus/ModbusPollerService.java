@@ -8,9 +8,9 @@ import com.serotonin.modbus4j.exception.ErrorResponseException;
 import com.serotonin.modbus4j.exception.ModbusInitException;
 import com.serotonin.modbus4j.exception.ModbusTransportException;
 import com.serotonin.modbus4j.ip.IpParameters;
-import datalogger.configuration.*;
-import datalogger.dao.EntryDao;
+import datalogger.modbus.configuration.*;
 import datalogger.model.Entry;
+import datalogger.model.dao.EntryDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +25,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Konstantin Kosmachevskiy
  */
-public class ModbusService {
+public class ModbusPollerService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ModbusService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ModbusPollerService.class);
     private ModbusFactory modbusFactory;
     private ScheduledExecutorService service;
     @Autowired
@@ -42,14 +42,12 @@ public class ModbusService {
         });
     }
 
-    public void start() {
+    public void start(DataLoggerConfiguration configuration) {
 
         shutDown();
 
         service = Executors.newSingleThreadScheduledExecutor();
         modbusFactory = new ModbusFactory();
-
-        DataLoggerConfiguration configuration = DataLoggerConfiguration.load();
 
         logger.debug(this.getClass().getSimpleName() + " starting with following configuration : " + configuration);
 

@@ -1,4 +1,4 @@
-package datalogger.configuration;
+package datalogger.modbus.configuration;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

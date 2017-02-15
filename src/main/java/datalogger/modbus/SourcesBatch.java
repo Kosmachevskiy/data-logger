@@ -3,7 +3,7 @@ package datalogger.modbus;
 import com.serotonin.modbus4j.BatchRead;
 import com.serotonin.modbus4j.code.DataType;
 import com.serotonin.modbus4j.locator.BaseLocator;
-import datalogger.configuration.Source;
+import datalogger.modbus.configuration.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

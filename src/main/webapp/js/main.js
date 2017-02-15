@@ -1,6 +1,6 @@
 var API_URL = '/api';
 var ENTRIES_URL = API_URL + '/entries';
-var REPORT_URL = API_URL + '/report';
+var REPORT_URL = API_URL + '/services';
 var SETTINGS_URL = API_URL + '/setting';
 var CREDENTIALS_COOKIE_NAME = "credentials";
 var LOG_FILE_NAME = "log.xlsx";
@@ -67,7 +67,7 @@ function handleResponse(response) {
     var entries = JSON.parse(response);
     entries.forEach(function (entrie) {
         addRow(entrie.date, entrie.time, entrie.name, entrie.value, entrie.unit);
-    })
+    });;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     drawDashboard(entries);
 }
 
