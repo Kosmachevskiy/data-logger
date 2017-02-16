@@ -10,13 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.sql.DataSource;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -30,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 })
 public class AppConfig {
 
-    private static final String DB_SCHEMA =
+    public static final String DB_SCHEMA =
             "CREATE TABLE IF NOT EXISTS entries (id identity, date DATE, time TIME, " +
                     "name VARCHAR (50) ,value VARCHAR(255), unit VARCHAR(20));";
 
@@ -47,21 +45,27 @@ public class AppConfig {
         return new PropertySourcesPlaceholderConfigurer();
     }
 
-    private DataSource dataSource() {
+
+    @Bean
+    @Profile("production")
+    public EntryDao entryDao() {
+        return getEntryDao(driverName, url);
+    }
+
+    @Bean
+    @Profile("demo")
+    public EntryDao demoEntryDao() {
+        return getEntryDao(driverName, url + "-demo");
+    }
+
+    private EntryDao getEntryDao(String driverName, String url) {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName(driverName);
         dataSource.setUrl(url);
-        return dataSource;
-    }
-
-    @Bean
-    public JdbcTemplate jdbcTemplate() {
-        return new JdbcTemplate(dataSource());
-    }
-
-    @Bean
-    public EntryDao entryDao() {
-        return new EntryDaoJdbc();
+        EntryDaoJdbc entryDaoJdbc = new EntryDaoJdbc();
+        entryDaoJdbc.setDataSource(dataSource);
+        entryDaoJdbc.getJdbcTemplate().execute(DB_SCHEMA);
+        return entryDaoJdbc;
     }
 
     @Bean
@@ -72,11 +76,6 @@ public class AppConfig {
     @Bean
     public ReportBuilder reportBuilder() {
         return new ReportBuilder();
-    }
-
-    @PostConstruct
-    public void init() {
-        jdbcTemplate().execute(DB_SCHEMA);
     }
 
     @Bean
@@ -103,6 +102,8 @@ public class AppConfig {
 
             service = Executors.newSingleThreadScheduledExecutor();
             service.scheduleAtFixedRate(() -> {
+                if (entryDao.countEntries() >= 1000)
+                    entryDao.deleteAll();
                 Random random = new Random(System.currentTimeMillis());
                 entryDao.add(new Entry(
                         "Source " + (random.nextInt(NUMBER_OF_SOURCES) + 1),

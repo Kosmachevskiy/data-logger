@@ -1,48 +1,40 @@
 package datalogger.model.dao;
 
 import datalogger.model.Entry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Created by Konstantin Kosmachevskiy on 04.11.16.
- */
-public class EntryDaoJdbc implements EntryDao {
+public class EntryDaoJdbc extends JdbcDaoSupport implements EntryDao {
     private static final EntryMapper ENTRY_MAPPER = new EntryMapper();
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
 
     @Override
     public void add(Entry entry) {
-        jdbcTemplate.execute(String.format(
+        getJdbcTemplate().execute(String.format(
                 EntrySqlConstants.ADD, entry.getDate(), entry.getTime(), entry.getValue(), entry.getUnit(), entry.getName()));
     }
 
     @Override
     public void deleteById(long id) {
-        jdbcTemplate.execute(String.format(EntrySqlConstants.DELETE_BY_ID, id));
+        getJdbcTemplate().execute(String.format(EntrySqlConstants.DELETE_BY_ID, id));
     }
 
     @Override
     public List<Entry> getAll() {
-        return jdbcTemplate.query(EntrySqlConstants.GET_ALL, ENTRY_MAPPER);
+        return getJdbcTemplate().query(EntrySqlConstants.GET_ALL, ENTRY_MAPPER);
     }
 
     @Override
     public long countEntries() {
-        return jdbcTemplate.queryForObject(EntrySqlConstants.COUNT_ALL, Long.class);
+        return getJdbcTemplate().queryForObject(EntrySqlConstants.COUNT_ALL, Long.class);
     }
 
     @Override
     public void deleteAll() {
-        jdbcTemplate.execute(EntrySqlConstants.DELETE_ALL);
+        getJdbcTemplate().execute(EntrySqlConstants.DELETE_ALL);
     }
 
     private static final class EntrySqlConstants {

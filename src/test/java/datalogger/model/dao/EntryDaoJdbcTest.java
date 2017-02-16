@@ -3,15 +3,9 @@ package datalogger.model.dao;
 import datalogger.AppConfig;
 import datalogger.model.Entry;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.PropertySources;
-import org.springframework.core.env.Environment;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.AnnotationConfigContextLoader;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -26,26 +20,27 @@ import static org.junit.Assert.assertFalse;
 /**
  * @author Konstantin Kosmachevskiy
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {AppConfig.class}, loader = AnnotationConfigContextLoader.class)
-@PropertySources({
-        @PropertySource("classpath:app.properties"),
-        @PropertySource("classpath:db.properties")
-})
 public class EntryDaoJdbcTest {
 
-    private final Entry[] TEST_DATA = {
+    private static final String DRIVER = "org.h2.Driver";
+    private static final String URL = "jdbc:h2:./data-logger-database-test";
+    private static final Entry[] TEST_DATA = {
             new Entry("Source1", "12.1", "units"),
             new Entry("Source2", "14.2", "units"),
             new Entry("Source3", "13.3", "units"),
             new Entry("Source4", "11.4", "units"),
     };
+    private static EntryDaoJdbc entryDao;
 
-    @Autowired
-    private EntryDao entryDao;
-    @Autowired
-    private Environment env;
-
+    @BeforeClass
+    public static void beforeClass() {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName(DRIVER);
+        dataSource.setUrl(URL);
+        entryDao = new EntryDaoJdbc();
+        entryDao.setDataSource(dataSource);
+        entryDao.getJdbcTemplate().execute(AppConfig.DB_SCHEMA);
+    }
 
     @Before
     public void before() {
@@ -83,8 +78,8 @@ public class EntryDaoJdbcTest {
     }
 
     private Connection getConnection() throws ClassNotFoundException, SQLException {
-        Class.forName(env.getProperty("db.driver"));
-        return DriverManager.getConnection(env.getProperty("db.url"));
+        Class.forName(DRIVER);
+        return DriverManager.getConnection(URL);
     }
 
     @Test
