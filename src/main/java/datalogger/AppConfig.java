@@ -19,6 +19,7 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
@@ -99,6 +100,12 @@ public class AppConfig {
         return new FakeSlaveService(configuration);
     }
 
+    @Bean
+    @Profile("demo")
+    public ScheduledExecutorService scheduledExecutorService() {
+        return Executors.newSingleThreadScheduledExecutor();
+    }
+
     @PostConstruct
     @Profile("demo")
     public void demo() {
@@ -106,11 +113,12 @@ public class AppConfig {
         fakeSlaveService().startTcpSlaves();
         fakeSlaveService().startSerialSlaves(SerialPort.DEMO_SERIAL_PORT_POINT_B);
 
-        //-- Run Pollers with the same config like Slaves --//
+        //-- Run Pollers with the same config as Slaves --//
         modbusPollerService().start(fakeSlaveService().getConfiguration());
 
         demoEntryDao().deleteAll();
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+
+        scheduledExecutorService().scheduleAtFixedRate(() -> {
             if (demoEntryDao().countEntries() > 400)
                 demoEntryDao().deleteAll();
         }, 1, 1, TimeUnit.MINUTES);
@@ -121,5 +129,6 @@ public class AppConfig {
     public void demoDestroy() {
         fakeSlaveService().stopSerialSlaves();
         fakeSlaveService().stopTcpSlaves();
+        scheduledExecutorService().shutdownNow();
     }
 }
