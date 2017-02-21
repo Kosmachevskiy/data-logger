@@ -36,13 +36,6 @@ public class ModbusPollerService {
     private EntryDao entryDao;
     private List<ModbusMaster> masters = new ArrayList<>();
 
-    {   // TODO: is it work as I expect?
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            logger.debug("Shutdown Hook.");
-            shutDown();
-        }));
-    }
-
     /**
      * Groups Sources by polling interval
      */
@@ -70,6 +63,7 @@ public class ModbusPollerService {
         shutDown();
 
         modbusFactory = new ModbusFactory();
+        pollerExecutorService = Executors.newSingleThreadScheduledExecutor();
 
         logger.debug(this.getClass().getSimpleName() + " starting with following configuration : " + configuration);
 
@@ -99,8 +93,6 @@ public class ModbusPollerService {
 
     private void createAndRunPollers(ModbusMaster modbusMaster, List<Source> sources, int slaveId) {
 
-        pollerExecutorService = Executors.newSingleThreadScheduledExecutor();
-
         masters.add(modbusMaster);
         try {
             modbusMaster.init();
@@ -123,14 +115,18 @@ public class ModbusPollerService {
         if (pollerExecutorService != null && !pollerExecutorService.isShutdown()) {
             logger.debug(this.getClass().getSimpleName() + " shutting down.");
 
-            pollerExecutorService.shutdownNow();
             for (ModbusMaster master : masters)
                 master.destroy();
             masters.clear();
-            if (pollerExecutorService.isShutdown()) {
-                logger.debug("Poller service is shutdown.");
+            pollerExecutorService.shutdownNow();
+            try {
+                if (pollerExecutorService.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+                    logger.debug("Poller service is shutdown.");
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            pollerExecutorService = null;
+//            pollerExecutorService = null;
         }
     }
 

@@ -21,8 +21,6 @@ import static org.mockito.Mockito.verify;
  * @author Konstantin Kosmachevskiy
  */
 public class ModbusPollerServiceIntegrationTest {
-    private static final String MASTER_SERIAL_PORT = "/dev/ttyUSB0";
-    private static final String SLAVE_SERIAL_PORT = "/dev/ttyUSB1";
 
     @Mock
     private EntryDao entryDao;

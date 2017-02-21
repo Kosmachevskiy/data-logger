@@ -17,6 +17,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -80,28 +81,45 @@ public class AppConfig {
 
     @Bean
     public ModbusPollerService modbusPollerService() {
-        ModbusPollerService service = new ModbusPollerService();
-        return service;
+        return new ModbusPollerService();
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        modbusPollerService().shutDown();
+    }
+
+    @Bean
+    @Profile("demo")
+    public FakeSlaveService fakeSlaveService() {
+        DataLoggerConfiguration configuration = DataLoggerConfiguration.createDemoConfig();
+        configuration.getTcpSlaves().get(0).setPort(1502);
+        configuration.getSerialConfiguration().setPort(SerialPort.DEMO_SERIAL_PORT_POINT_A);
+
+        return new FakeSlaveService(configuration);
     }
 
     @PostConstruct
     @Profile("demo")
     public void demo() {
-        DataLoggerConfiguration configuration = DataLoggerConfiguration.createDemoConfig();
-        configuration.getTcpSlaves().get(0).setPort(1502);
-        configuration.getSerialConfiguration().setPort(SerialPort.DEMO_SERIAL_PORT_POINT_A);
 
+        fakeSlaveService().startTcpSlaves();
+        fakeSlaveService().startSerialSlaves(SerialPort.DEMO_SERIAL_PORT_POINT_B);
 
-        FakeSlaveService slaveService = new FakeSlaveService(configuration);
-        slaveService.startTcpSlaves();
-        slaveService.startSerialSlaves(SerialPort.DEMO_SERIAL_PORT_POINT_B);
-
-        modbusPollerService().start(configuration);
+        //-- Run Pollers with the same config like Slaves --//
+        modbusPollerService().start(fakeSlaveService().getConfiguration());
 
         demoEntryDao().deleteAll();
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
             if (demoEntryDao().countEntries() > 400)
                 demoEntryDao().deleteAll();
         }, 1, 1, TimeUnit.MINUTES);
+    }
+
+    @PreDestroy
+    @Profile("demo")
+    public void demoDestroy() {
+        fakeSlaveService().stopSerialSlaves();
+        fakeSlaveService().stopTcpSlaves();
     }
 }

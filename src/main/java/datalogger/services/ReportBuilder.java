@@ -48,8 +48,9 @@ public class ReportBuilder {
         row = sheet.createRow(rowNum);
         row.createCell(0).setCellValue("Date");
         row.createCell(1).setCellValue("Time");
-        row.createCell(2).setCellValue("Value");
-        row.createCell(3).setCellValue("Unit");
+        row.createCell(2).setCellValue("Source");
+        row.createCell(3).setCellValue("Value");
+        row.createCell(4).setCellValue("Unit");
 
         for (Entry entry : entryDao.getAll()) {
             int cellNum = 0;
@@ -63,6 +64,7 @@ public class ReportBuilder {
             time.setCellValue(entry.getTime());
             time.setCellStyle(cellTimeStyle);
 
+            row.createCell(cellNum++).setCellValue(entry.getName());
             row.createCell(cellNum++).setCellValue(entry.getValue());
             row.createCell(cellNum++).setCellValue(entry.getUnit());
         }

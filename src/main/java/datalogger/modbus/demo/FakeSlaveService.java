@@ -35,16 +35,6 @@ public class FakeSlaveService {
     private ExecutorService serialUpdaters;
     private ModbusSlaveSet serialModbusSlaveSet;
 
-    {   // TODO: is it work as I expect?
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                logger.debug("Shutdown Hook.");
-                stopTcpSlaves();
-            }
-        });
-    }
-
     public FakeSlaveService(DataLoggerConfiguration configuration) {
         this.configuration = configuration;
     }
@@ -56,6 +46,10 @@ public class FakeSlaveService {
         processImage.setExceptionStatus((byte) 151);
 
         return processImage;
+    }
+
+    public DataLoggerConfiguration getConfiguration() {
+        return configuration;
     }
 
     public void startTcpSlaves() {
