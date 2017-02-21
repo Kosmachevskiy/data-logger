@@ -9,11 +9,9 @@ import java.util.List;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @Data
-public class SerialSlave {
-
+public class SerialSlave extends Slave {
     @XmlAttribute
     private int id = 0;
     @XmlElement(name = "source")
     private List<Source> sources = new ArrayList<Source>();
-
 }

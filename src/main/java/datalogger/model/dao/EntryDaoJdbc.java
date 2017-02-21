@@ -43,7 +43,7 @@ public class EntryDaoJdbc extends JdbcDaoSupport implements EntryDao {
         static final String GET_ALL = "SELECT * FROM ENTRIES";
         static final String COUNT_ALL = "SELECT COUNT(*) FROM ENTRIES";
         static final String DELETE_BY_ID = "DELETE FROM entries WHERE id=%s";
-        static final String DELETE_ALL = "DELETE FROM entries;";
+        static final String DELETE_ALL = "TRUNCATE TABLE entries;";
     }
 
     private static class EntryMapper implements RowMapper<Entry> {

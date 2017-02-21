@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.lang.reflect.Field;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -35,6 +36,17 @@ public class Source {
         this.address = address;
         this.units = units;
         this.pollingTime = pollingTime;
+    }
+
+    public static int mapDataTypeToNativeDataType(DataType dataType) throws IllegalArgumentException {
+        if (dataType == null)
+            throw new IllegalArgumentException();
+        try {
+            Field field = com.serotonin.modbus4j.code.DataType.class.getDeclaredField(dataType.name());
+            return field.getInt(dataType);
+        } catch (Exception e) {
+            return -1;
+        }
     }
 
     public enum Type {

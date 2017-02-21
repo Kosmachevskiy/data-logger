@@ -23,7 +23,7 @@ public class SourcesBatchTest {
     @Test
     public void mapDataTypeToNativeDataType() throws Exception {
         int expectedValue = DataType.EIGHT_BYTE_FLOAT;
-        int actualValue = SourcesBatch.mapDataTypeToNativeDataType(Source.DataType.EIGHT_BYTE_FLOAT);
+        int actualValue = Source.mapDataTypeToNativeDataType(Source.DataType.EIGHT_BYTE_FLOAT);
 
         Assert.assertEquals(expectedValue, actualValue);
     }
@@ -32,7 +32,7 @@ public class SourcesBatchTest {
     public  void mapDataTypeToNativeDataTypeException(){
         // By default DataType is not specified
         Source source = new Source();
-        SourcesBatch.mapDataTypeToNativeDataType(source.getDataType());
+        Source.mapDataTypeToNativeDataType(source.getDataType());
     }
 
     @Test

@@ -68,9 +68,9 @@ public class ConfigurationServiceTest {
     @Test
     public void defaultConfig(){
         // There are four sources in Demo configuration
-        Assert.assertEquals(4, configurationService
+        Assert.assertEquals(4, DataLoggerConfiguration
                 .createDemoConfig().getTcpSlaves().get(0).getSources().size());
-        Assert.assertEquals(4, configurationService
+        Assert.assertEquals(4, DataLoggerConfiguration
                 .createDemoConfig().getSerialConfiguration().getSlaves().get(0).getSources().size());
 
     }

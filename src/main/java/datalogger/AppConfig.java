@@ -2,22 +2,22 @@ package datalogger;
 
 import datalogger.modbus.ConfigurationService;
 import datalogger.modbus.ModbusPollerService;
-import datalogger.model.Entry;
+import datalogger.modbus.SerialPort;
+import datalogger.modbus.configuration.DataLoggerConfiguration;
+import datalogger.modbus.demo.FakeSlaveService;
 import datalogger.model.dao.EntryDao;
 import datalogger.model.dao.EntryDaoJdbc;
 import datalogger.services.ReportBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.util.Random;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
@@ -31,7 +31,7 @@ public class AppConfig {
     public static final String DB_SCHEMA =
             "CREATE TABLE IF NOT EXISTS entries (id identity, date DATE, time TIME, " +
                     "name VARCHAR (50) ,value VARCHAR(255), unit VARCHAR(20));";
-
+    private static final Logger logger = LoggerFactory.getLogger(AppConfig.class);
     @Value("${db.driver}")
     public String driverName;
     @Value("${db.url}")
@@ -39,26 +39,7 @@ public class AppConfig {
     @Value("${app.home}")
     public String homeFolder;
 
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer
-    propertySourcesPlaceholderConfigurer() {
-        return new PropertySourcesPlaceholderConfigurer();
-    }
-
-
-    @Bean
-    @Profile("production")
-    public EntryDao entryDao() {
-        return getEntryDao(driverName, url);
-    }
-
-    @Bean
-    @Profile("demo")
-    public EntryDao demoEntryDao() {
-        return getEntryDao(driverName, url + "-demo");
-    }
-
-    private EntryDao getEntryDao(String driverName, String url) {
+    private static EntryDao getEntryDao(String driverName, String url) {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName(driverName);
         dataSource.setUrl(url);
@@ -66,6 +47,25 @@ public class AppConfig {
         entryDaoJdbc.setDataSource(dataSource);
         entryDaoJdbc.getJdbcTemplate().execute(DB_SCHEMA);
         return entryDaoJdbc;
+    }
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer
+    propertySourcesPlaceholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
+    }
+
+    @Bean(value = "entryDao", autowire = Autowire.BY_NAME)
+    @Profile("production")
+    public EntryDao trueEntryDao() {
+        return getEntryDao(driverName, url);
+    }
+
+    @Bean(name = "entryDao", autowire = Autowire.BY_NAME)
+    @Profile("demo")
+    public EntryDao demoEntryDao() {
+        EntryDao dao = getEntryDao(driverName, url + "-demo");
+        return dao;
     }
 
     @Bean
@@ -79,43 +79,29 @@ public class AppConfig {
     }
 
     @Bean
-    @Profile("production")
     public ModbusPollerService modbusPollerService() {
         ModbusPollerService service = new ModbusPollerService();
-        service.start(configurationService().load());
         return service;
     }
 
-    @Service
+    @PostConstruct
     @Profile("demo")
-    static class FakePoller {
+    public void demo() {
+        DataLoggerConfiguration configuration = DataLoggerConfiguration.createDemoConfig();
+        configuration.getTcpSlaves().get(0).setPort(1502);
+        configuration.getSerialConfiguration().setPort(SerialPort.DEMO_SERIAL_PORT_POINT_A);
 
-        private static final long POLLING_TIME = 1;
-        private static final int NUMBER_OF_SOURCES = 4;
-        private ScheduledExecutorService service;
-        @Autowired
-        private EntryDao entryDao;
 
-        @PostConstruct
-        public void init() {
-            entryDao.deleteAll();
+        FakeSlaveService slaveService = new FakeSlaveService(configuration);
+        slaveService.startTcpSlaves();
+        slaveService.startSerialSlaves(SerialPort.DEMO_SERIAL_PORT_POINT_B);
 
-            service = Executors.newSingleThreadScheduledExecutor();
-            service.scheduleAtFixedRate(() -> {
-                if (entryDao.countEntries() >= 1000)
-                    entryDao.deleteAll();
-                Random random = new Random(System.currentTimeMillis());
-                entryDao.add(new Entry(
-                        "Source " + (random.nextInt(NUMBER_OF_SOURCES) + 1),
-                        String.valueOf((random.nextInt(99) + 1)),
-                        "Unit"));
-            }, POLLING_TIME, POLLING_TIME, TimeUnit.SECONDS);
-        }
+        modbusPollerService().start(configuration);
 
-        @PreDestroy
-        public void destroy() {
-            if (service != null)
-                service.shutdownNow();
-        }
+        demoEntryDao().deleteAll();
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            if (demoEntryDao().countEntries() > 400)
+                demoEntryDao().deleteAll();
+        }, 1, 1, TimeUnit.MINUTES);
     }
 }

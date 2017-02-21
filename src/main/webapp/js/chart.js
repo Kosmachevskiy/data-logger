@@ -78,6 +78,16 @@ function prepareDate(entries, data) {
     entries.forEach(function (element, index, array) {
         var time = times[element.date + ' ' + element.time];
         var col = sources[element.name].colNumber;
+        // -- It may be boolean value --//
+        if (element.value == 'true') {
+            time[col] = 50;
+            return
+        }
+        if (element.value == 'false') {
+            time[col] = -50;
+            return
+        }
+        // -- Or it may be Numeric --//
         time[col] = parseInt(element.value);
     });
 
